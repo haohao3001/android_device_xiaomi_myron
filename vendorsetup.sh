@@ -49,8 +49,7 @@ export FOX_USE_XZ_UTILS=1
 export FOX_USE_FSCK_EROFS_BINARY=1
 export FOX_USE_PATCHELF_BINARY=1
 export FOX_USE_UPDATED_MAGISKBOOT=1
-#不支持Magisk，需要的可自行构建，把FOX_MOVE_MAGISK_INSTALLER_TO_RAMDISK改为1即可
-export FOX_MOVE_MAGISK_INSTALLER_TO_RAMDISK=0
+export FOX_MOVE_MAGISK_INSTALLER_TO_RAMDISK=1
 
 # ─── Compatibility & quirks ───────────────────────────────────────────────────
 export OF_TWRP_COMPATIBILITY_MODE=1
@@ -78,6 +77,5 @@ export FOX_MAINTAINER_PATCH_VERSION=$(date +%y%m%d)
 export OF_MAINTAINER="haohao3001@github"
 
 # ─── Magisk ───────────────────────────────────────────────────────────────────
-#不支持Magisk，需要的可自行构建
-#export OF_MAGISK="/tmp/misc/Magisk.zip"
-#export FOX_USE_SPECIFIC_MAGISK_ZIP="/tmp/misc/Magisk.zip"
+export OF_MAGISK="/tmp/misc/Magisk.zip"
+export FOX_USE_SPECIFIC_MAGISK_ZIP="/tmp/misc/Magisk.zip"

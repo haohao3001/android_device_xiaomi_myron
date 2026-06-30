@@ -61,10 +61,10 @@ def transplant_avb_smart(official_img, custom_img, output_img):
         
         f_out.write(new_footer)           # 在最后 64 字节打上新的指针
         
-    print(f"[+] 🎉 智能移植成功！完美重构指针，新镜像已生成：{output_img}")
+    print(f"[+] AVB移植成功，新镜像已生成：{output_img}")
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print("用法: python3 vb.py <官方recovery.img> <OrangeFox.img> <输出镜像.img>")
+        print("用法: python transplanting_vbmeta.py <原厂recovery.img> <被修补的镜像> <修补后的文件>")
         sys.exit(1)
     transplant_avb_smart(sys.argv[1], sys.argv[2], sys.argv[3])

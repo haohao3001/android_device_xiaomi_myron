@@ -34,7 +34,7 @@ mka recoveryimage
 ## 支持的特性
 - [X] 显示
 - [X] 触屏 
-- [X] 震动(已经在研究了)  
+- [X] 震动
 - [X] 解密Data
 - [X] 刷入卡刷包
 - [X] 备份
@@ -56,6 +56,8 @@ python transplanting_vbmeta.py <原厂recovery.img> <被修补的镜像> <修补
 使用下面的命令可删除保存在persist中的OrangeFox配置文件
 ```bash
 rm -r /mnt/vendor/persist/Fox
+rm /mnt/vendor/persist/.foxs
+rm /mnt/vendor/persist/.fsec
 ```
 
 ## Maintainer

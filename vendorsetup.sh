@@ -66,6 +66,8 @@ export FOX_ALLOW_EARLY_SETTINGS_LOAD=1
 
 # ─── KernelSU support ─────────────────────────────────────────────────────────
 export FOX_ENABLE_KERNELSU_SUPPORT=1
+export FOX_ENABLE_KERNELSU_NEXT_SUPPORT=1
+export FOX_ENABLE_SUKISU_SUPPORT=1
 
 # ─── OrangeFox Theme / Accent Color ──────────────────────────────────────────
 export FOX_SPR=1

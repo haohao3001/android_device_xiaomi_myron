@@ -1,0 +1,163 @@
+diff --git a/minuitwrp/events.cpp b/minuitwrp/events.cpp
+index e497df62..92a9dba3 100644
+--- a/minuitwrp/events.cpp
++++ b/minuitwrp/events.cpp
+@@ -27,6 +27,11 @@
+ #include <stdio.h>
+ #include <string.h>
+ #include <fstream>
++//haohao3001's change->BEGIN:
++//增加force-feedback所需的头文件
++#include <string>
++#include <sys/ioctl.h>
++//haohao3001's change->END
+ #ifdef USE_QTI_AIDL_HAPTICS_FIX_OFF
+ #include <thread>
+ #endif
+@@ -147,6 +152,116 @@ int write_to_file(const std::string& fn, const std::string& line) {
+ 
+ #ifndef TW_NO_HAPTICS
+ #ifndef TW_HAPTICS_TSPDRV
++//haohao3001's change->BEGIN
++/**
++ * 动态获取名称为 "qcom-hv-haptics" 的震动设备 event 节点路径。
++ *
++ * @return 匹配的设备路径（如 "/dev/input/event6"），若未找到则返回空字符串。
++ */
++std::string find_haptic_device() {
++    const char* dir_path = "/dev/input";
++    DIR* dir = opendir(dir_path);
++    if (!dir) {
++        return "";
++    }
++
++    struct dirent* entry;
++    char dev_name[256];
++    std::string matched_path = "";
++
++    // 扫描 /dev/input 目录下所有名为 "event*" 的输入子节点
++    while ((entry = readdir(dir)) != nullptr) {
++        if (strncmp(entry->d_name, "event", 5) == 0) {
++            std::string full_path = std::string(dir_path) + "/" + entry->d_name;
++            
++            // 以只读模式且附带 O_CLOEXEC 打开，以便仅查询设备名称
++            int fd = open(full_path.c_str(), O_RDONLY | O_CLOEXEC);
++            if (fd >= 0) {
++                memset(dev_name, 0, sizeof(dev_name));
++                
++                // 查询驱动对外的友好名称
++                if (ioctl(fd, EVIOCGNAME(sizeof(dev_name)), dev_name) >= 0) {
++                    if (strcmp(dev_name, "qcom-hv-haptics") == 0) {
++                        matched_path = full_path;
++                        close(fd);
++                        break; // 找到目标，结束检索
++                    }
++                }
++                close(fd);
++            }
++        }
++    }
++    closedir(dir);
++    return matched_path;
++}
++
++/**
++ * 对指定设备路径发送 FF_CONSTANT 恒定力震动信号。
++ *
++ * @param dev_path     设备文件路径（如 "/dev/input/event6"）
++ * @param duration_ms  震动持续时长（毫秒）
++ * @return             true 表示成功触震，false 表示过程中出现错误
++ */
++bool trigger_haptic_vibration(const std::string& dev_path, int duration_ms) {
++    if (dev_path.empty()) {
++        return false;
++    }
++
++    // FF 协议控制需要 R/W 权限
++    int fd = open(dev_path.c_str(), O_RDWR | O_CLOEXEC);
++    if (fd < 0) {
++        return false;
++    }
++
++    // 1. 设置震动全局增益 (FF_GAIN) 确保马达全力输出
++    struct input_event gain_ev;
++    memset(&gain_ev, 0, sizeof(gain_ev));
++    gain_ev.type = EV_FF;
++    gain_ev.code = FF_GAIN;
++    gain_ev.value = 0xFFFF; // 最大增益
++    if (write(fd, &gain_ev, sizeof(gain_ev)) < 0) {
++        // 部分非标平台内核可能忽略此设置，不阻塞后续流程
++    }
++
++    // 2. 构建 FF_CONSTANT 触觉数据结构
++    struct ff_effect effect;
++    memset(&effect, 0, sizeof(effect));
++    effect.type = FF_CONSTANT;
++    effect.id = -1; // -1 表示告知内核需要注册全新效果并生成 ID
++    effect.replay.length = duration_ms;
++    effect.replay.delay = 0;
++    effect.u.constant.level = 0x5FFF; // 点击反馈的标准清脆震动强度
++
++    // 3. 上传效果参数
++    if (ioctl(fd, EVIOCSFF, &effect) < 0) {
++        close(fd);
++        return false;
++    }
++
++    // 4. 发送触发信号播放该效果
++    struct input_event play;
++    memset(&play, 0, sizeof(play));
++    play.type = EV_FF;
++    play.code = effect.id;
++    play.value = 1; // 播放 1 次
++
++    bool success = true;
++    if (write(fd, &play, sizeof(play)) < 0) {
++        success = false;
++    } else {
++        // 在后台线程（或此同步流程内）等待震动播放完毕再擦除。
++        // 添加 50ms 的安全缓冲时间，防止因过早调用 EVIOCRMFF 导致硬震戛然而止。
++        usleep((duration_ms + 50) * 1000); 
++    }
++
++    // 5. 必须从内核清除该效果缓存，规避内存泄漏
++    ioctl(fd, EVIOCRMFF, effect.id);
++    close(fd);
++
++    return success;
++}
++//haohao3001's change->END
++
+ int vibrate(int timeout_ms)
+ {
+     if (timeout_ms > 10000) timeout_ms = 1000;
+@@ -182,11 +297,27 @@ int vibrate(int timeout_ms)
+         write_to_file(VIBRATOR_TIMEOUT_FILE, tout);
+     }
+ #else
+-    if (std::ifstream(LEDS_HAPTICS_ACTIVATE_FILE).good()) {
++    //haohao3001's change->BEGIN
++    static std::string haptic_node = "";
++    static bool haptic_searched = false;
++
++    if (!haptic_searched) {
++        haptic_node = find_haptic_device();
++        haptic_searched = true;
++    }
++
++    // 优先尝试通过底层 Force Feedback 发送震动信号
++    if (!haptic_node.empty() && trigger_haptic_vibration(haptic_node, timeout_ms)) {
++        // 成功则不执行任何操作，直接避开下方的 sysfs 写入
++    } 
++    // 若上述方案失败或未检索到设备，则退回到原先的 sysfs/leds 逻辑
++    else if (std::ifstream(LEDS_HAPTICS_ACTIVATE_FILE).good()) {
+         write_to_file(LEDS_HAPTICS_DURATION_FILE, tout);
+         write_to_file(LEDS_HAPTICS_ACTIVATE_FILE, "1");
+-    } else
++    } else {
+         write_to_file(VIBRATOR_TIMEOUT_FILE, tout);
++    }
++    //haohao3001's change->END
+ #endif
+     return 0;
+ }

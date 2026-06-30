@@ -23,6 +23,7 @@ git clone https://github.com/OrangeFox16/sync.git
 cd sync
 ./orangefox_sync.sh --branch 16.0 --path ~/fox_16.0 #同步源码，这一步需要在googlesource下载大约80G的源码(This may take a very *long* time)
 cd fox_16.0
+git -C $ANDROID_BUILD_TOP/bootable/recovery apply $ANDROID_BUILD_TOP/device/xiaomi/myron/0000-Add-haptics.patch #需要震动的就应用该patch
 source build/envsetup.sh
 lunch twrp_myron-bp2a-eng
 mka recoveryimage
@@ -33,6 +34,7 @@ mka recoveryimage
 ## 支持的特性
 - [X] 显示
 - [X] 触屏 
+- [X] 震动(已经在研究了)  
 - [X] 解密Data
 - [X] 刷入卡刷包
 - [X] 备份
@@ -43,7 +45,6 @@ mka recoveryimage
 
 ## 不支持的特性
 - [ ] WLAN(为什么Recovery需要WLAN支持?)(遥遥无期)
-- [ ] 震动(已经在研究了)
 
 ## 注意
 对于假回锁用户，自行构建的OrangeFox不能直接刷入recovery分区(Release里的是处理好的)，需要使用仓库下的“transplanting_vbmeta.py”脚本把原厂recovery的avb信息移植过去后再刷入  

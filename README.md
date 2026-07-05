@@ -18,11 +18,16 @@
 ---
 
 ## 构建
+### 初始化构建环境
 ```bash
 git clone https://github.com/OrangeFox16/sync.git
 cd sync
 ./orangefox_sync.sh --branch 16.0 --path ~/fox_16.0 #同步源码，这一步需要在googlesource下载大约80G的源码(This may take a very *long* time)
 cd fox_16.0
+git clone https://github.com/haohao3001/android_device_xiaomi_myron.git device/xiaomi/myron
+```
+### Build
+```bash
 source build/envsetup.sh
 git -C $ANDROID_BUILD_TOP/bootable/recovery apply $ANDROID_BUILD_TOP/device/xiaomi/myron/0000-Add-haptics.patch #需要震动的就应用该patch
 lunch twrp_myron-bp2a-eng

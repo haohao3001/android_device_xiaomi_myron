@@ -69,3 +69,6 @@ rm /mnt/vendor/persist/.fsec
 haohao3001 - 维护者  
 基于[hackpupg001-a11y的设备树](https://github.com/hackpupg001-a11y/android_device_xiaomi_myron)二次开发  
 recovery/root下的大部分二进制文件参考自 變換風雲@coolapk 的TWRP
+
+## 在此基础上，添加一些我自己的修改
+目前的修改内容：移除那该死的刘海

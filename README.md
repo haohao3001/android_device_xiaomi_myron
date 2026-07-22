@@ -31,6 +31,7 @@ git clone https://github.com/haohao3001/android_device_xiaomi_myron.git device/x
 source build/envsetup.sh
 git -C $ANDROID_BUILD_TOP/bootable/recovery apply $ANDROID_BUILD_TOP/device/xiaomi/myron/0000-Add-haptics.patch #需要震动的就应用该patch
 lunch twrp_myron-bp2a-eng
+mka recoveryimage
 ```
 
 

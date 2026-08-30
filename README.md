@@ -1,5 +1,8 @@
 # OrangeFox Recovery — Xiaomi myron (POCO F8 Ultra / Redmi K90 Pro Max)
-
+## Notice/重要
+### 请不要在Android17下使用该rec解密data，可能会导致数据丢失
+### 如确实需要rec请先使用[MissMyTime的TWRP](https://github.com/MissMyTime/twrp_device_sm8850)
+### 会在后续修复这个问题(现在没时间说是)
 ## 设备信息
 
 | 项目 | 规格 |
